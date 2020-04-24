@@ -3,6 +3,11 @@ This will modify the generated api docs.
 
 # How to run
 
+### Required
+
+- Install latest version of the golang
+
+
 Run the `redirection.sh` with following parameters
 
 ```bash
