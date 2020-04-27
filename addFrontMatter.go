@@ -20,10 +20,10 @@ var fileExtension = ".html"
 var templateDir = "templates/"
 
 type APIDoc struct {
-	FileName        string
-	PermalinkPreFix string
-	RedirectVersion string
-	Content         string
+	FileName         string
+	PermalinkPostFix string
+	RedirectVersion  string
+	Content          string
 }
 
 func main() {
@@ -35,24 +35,23 @@ func main() {
 		fileRelativeURL := split[len(split)-1]
 		fileName := info.Name()
 		dirForFile := strings.Split(fileRelativeURL, fileName)[0]
-		fullPathToOutput := outputLocation + permalinkPreFix + dirForFile
+		fullPathToOutput := filepath.Join(outputLocation, dirForFile)
 		createDir(fullPathToOutput)
 
 		if filepath.Ext(path) == fileExtension {
 			fileContent := mustReadFile(path)
 
-			docTmpl, tmplError := template.New("api-doc").Parse(mustReadFile(templateDir + "api-doc.tmpl"))
+			docTmpl, tmplError := template.New("api-doc").Parse(mustReadFile(filepath.Join(templateDir, "api-doc.tmpl")))
 			check(tmplError)
 			fileNameSplits := strings.Split(fileName, fileExtension)
 			onlyFileName := fileNameSplits[0]
 			apidoc := APIDoc{
-				FileName:        onlyFileName,
-				RedirectVersion: redirectVersion,
-				Content:         fileContent,
-				PermalinkPreFix: permalinkPreFix + dirForFile,
+				RedirectVersion:  redirectVersion,
+				Content:          fileContent,
+				PermalinkPostFix: filepath.Join(permalinkPreFix, dirForFile, onlyFileName),
 			}
 
-			apiDocsFile, errorCreatingAPIDoc := os.Create(fullPathToOutput + fileName)
+			apiDocsFile, errorCreatingAPIDoc := os.Create(filepath.Join(fullPathToOutput, fileName))
 			check(errorCreatingAPIDoc)
 			docTmpl.Execute(apiDocsFile, apidoc)
 		} else if !info.IsDir() {
@@ -62,7 +61,7 @@ func main() {
 			}
 			defer from.Close()
 
-			to, err := os.OpenFile(fullPathToOutput+fileName, os.O_RDWR|os.O_CREATE, 0666)
+			to, err := os.OpenFile(filepath.Join(fullPathToOutput, fileName), os.O_RDWR|os.O_CREATE, 0666)
 			if err != nil {
 				log.Fatal(err)
 			}
